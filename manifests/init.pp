@@ -72,14 +72,16 @@ class resolv (
       }
     }
   } else {
-    file { $config_path:
-      ensure  => file,
-      content => template('resolv/resolv.conf.erb'),
-      notify  => $notify,
-    }
-    exec { "resovconfupdate.${nameservers}":
-      command     => '/sbin/resolvconf -u',
-      refreshonly => true,
+    unless empty($nameservers) {
+      file { $config_path:
+        ensure  => file,
+        content => template('resolv/resolv.conf.erb'),
+        notify  => $notify,
+      }
+      exec { "resovconfupdate.${nameservers}":
+        command     => '/sbin/resolvconf -u',
+        refreshonly => true,
+      }
     }
   }
 }
