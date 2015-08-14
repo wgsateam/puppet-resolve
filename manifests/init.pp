@@ -64,25 +64,47 @@ class resolv (
       }
     }
     'Debian': {
-      unless empty($nameservers) {
-        file { '/etc/resolvconf/resolv.conf.d/tail':
-          ensure  => file,
-          content => template('resolv/resolv.conf.erb'),
-        }
-        ~>
-        exec { "resovconfupdate.${nameservers}":
-          command     => '/sbin/resolvconf -u',
-          refreshonly => true,
-        }
+      file { '/etc/resolvconf/resolv.conf.d/tail':
+        ensure  => file,
+        content => template('resolv/resolv.conf.erb'),
+      }
+      ~>
+      exec { "resovconfupdate.${nameservers}":
+        command     => '/sbin/resolvconf -u',
+        refreshonly => true,
       }
     }
     default: {
-      augeas { 'resolv.conf':
-        lens    => 'Resolv.lns',
-        incl    => '/etc/resolv.conf',
-        context => '/files/etc/resolv.conf/options',
-        changes => 'set timeout:1 rotate',
+      if $nameservers {
+        resolv::set_nameserver { $nameservers: nameservers => $nameservers }
+      }
+      if $search {
+        augeas { 'set_search':
+          lens    => 'resolv.lns',
+          incl    => '/etc/resolv.conf',
+          context => '/files/etc/resolv.conf',
+          changes => "set search ${search_string}",
+        }
+      }
+      if $options {
+        augeas { 'set_options':
+          lens    => 'resolv.lns',
+          incl    => '/etc/resolv.conf',
+          context => '/files/etc/resolv.conf',
+          changes => "set options ${options_string}",
+        }
       }
     }
+  }
+}
+
+define resolv::set_nameserver ($nameservers) {
+  #get current ns index in ns array
+  $index = inline_template('<%= @nameservers.sort.index(@title).to_i %>') + 1
+  augeas { "set_nameserver_${index}":
+    lens    => 'Resolv.lns',
+    incl    => '/etc/resolv.conf',
+    context => '/files/etc/resolv.conf',
+    changes => "set nameserver[${index}] ${title}",
   }
 }
