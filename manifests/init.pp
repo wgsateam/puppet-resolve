@@ -76,22 +76,20 @@ class resolv (
     }
     default: {
       if $nameservers {
-        resolv::set_nameserver { $nameservers: nameservers => $nameservers }
+        resolv::set_nameserver { $nameservers: }
       }
       if $search {
-        augeas { 'set_search':
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => "set search ${search_string}",
+        file_line { 'set_search':
+          path  => '/etc/resolv.conf',
+          line  => "search ${search_string}",
+          match => 'search\s\w+'
         }
       }
       if $options {
-        augeas { 'set_options':
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => "set options ${options_string}",
+        file_line { 'set_options':
+          path  => '/etc/resolv.conf',
+          line  => "options ${options_string}",
+          match => 'options\s\w+'
         }
       }
     }
@@ -99,12 +97,9 @@ class resolv (
 }
 
 define resolv::set_nameserver ($nameservers) {
-  #get current ns index in ns array
-  $index = inline_template('<%= @nameservers.sort.index(@title).to_i %>') + 1
-  augeas { "set_nameserver_${index}":
-    lens    => 'Resolv.lns',
-    incl    => '/etc/resolv.conf',
-    context => '/files/etc/resolv.conf',
-    changes => "set nameserver[${index}] ${title}",
+  file_line { "set_ns_${title}":
+    path  => '/etc/resolv.conf',
+    line  => "nameserver ${title}",
+    match => "nameserver ${title}",
   }
 }
