@@ -22,9 +22,9 @@
 # applewiskey <antony.fomenko@gmail.com>
 #
 class resolv (
-  $nameservers,
-  $search,
-  $options
+  $nameservers = undef,
+  $search = undef,
+  $options = undef
 ) {
   if $nameservers {
     validate_array($nameservers)
