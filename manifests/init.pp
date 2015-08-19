@@ -46,20 +46,20 @@ class resolv (
       if $nameservers {
         exec { "dnsclient.setprop.${nameservers_string}":
           command => "/usr/sbin/svccfg -s network/dns/client setprop config/nameserver = net_address: \'\"${nameservers_string}\"\'; /usr/sbin/svccfg -s network/dns/client refresh",
-          unless  => "/usr/bin/svcprop -p config/nameserver network/dns/client | grep ${nameservers_string}",
+          unless  => "grep '${nameservers_string}' /etc/resolv.conf",
         }
       }
       if $search {
         exec { "dnsclient.setprop.${search_string}":
           command => "/usr/sbin/svccfg -s network/dns/client setprop config/search = \'\"${search_string}\"\'; /usr/sbin/svccfg -s network/dns/client refresh",
-          unless  => "/usr/bin/svcprop -p config/search network/dns/client | grep ${search_string}",
+          unless  => "grep '${search_string}' /etc/resolv.conf",
         }
       }
 
       if $options {
         exec { "dnsclient.setprop.${options_string}":
           command => "/usr/sbin/svccfg -s network/dns/client setprop config/options = \'\"${options_string}\"\'; /usr/sbin/svccfg -s network/dns/client refresh",
-          unless  => "/usr/bin/svcprop -p config/options network/dns/client | grep ${options_string}",
+          unless  => "grep '${options_string}' /etc/resolv.conf",
         }
       }
     }
