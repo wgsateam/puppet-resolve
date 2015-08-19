@@ -82,14 +82,14 @@ class resolv (
         file_line { 'set_search':
           path  => '/etc/resolv.conf',
           line  => "search ${search_string}",
-          match => "search ${search_string}",
+          match => '^search',
         }
       }
       if $options {
         file_line { 'set_options':
           path  => '/etc/resolv.conf',
           line  => "options ${options_string}",
-          match => "options ${options_string}",
+          match => '^options',
         }
       }
     }
