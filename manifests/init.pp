@@ -64,12 +64,16 @@ class resolv (
       }
     }
     'Debian': {
+      package { 'resolvconf':
+        ensure => installed,
+      }
+      ->
       file { '/etc/resolvconf/resolv.conf.d/tail':
         ensure  => file,
         content => template('resolv/resolv.conf.erb'),
       }
       ~>
-      exec { "resovconfupdate.${nameservers}":
+      exec { "resovconfupdate":
         command     => '/sbin/resolvconf -u',
         refreshonly => true,
       }
