@@ -100,7 +100,7 @@ class resolv (
   }
 }
 
-define resolv::set_nameserver ($nameservers) {
+define resolv::set_nameserver {
   file_line { "set_ns_${title}":
     path  => '/etc/resolv.conf',
     line  => "nameserver ${title}",
