@@ -22,9 +22,9 @@
 # applewiskey <antony.fomenko@gmail.com>
 #
 class resolv (
-  Array $nameservers = undef,
-  Array $search = undef,
-  Array $options = undef
+  Variant[Array, Undef] $nameservers = undef,
+  Variant[Array, Undef] $search = undef,
+  Variant[Array, Undef] $options = undef
 ) {
   if $nameservers {
     $nameservers_string = join($nameservers, ' ')
