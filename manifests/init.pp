@@ -22,22 +22,19 @@
 # applewiskey <antony.fomenko@gmail.com>
 #
 class resolv (
-  $nameservers = undef,
-  $search = undef,
-  $options = undef
+  Array $nameservers = undef,
+  Array $search = undef,
+  Array $options = undef
 ) {
   if $nameservers {
-    validate_array($nameservers)
     $nameservers_string = join($nameservers, ' ')
   }
 
   if $search {
-    validate_array($search)
     $search_string = join($search, ' ')
   }
 
   if $options {
-    validate_array($options)
     $options_string = join($options, ' ')
   }
 
