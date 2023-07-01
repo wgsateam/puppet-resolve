@@ -77,21 +77,16 @@ class resolv (
     }
     default: {
       if $nameservers {
-        resolv::set_nameserver { $nameservers: }
+        $ns = $nameservers.map |$x| { "default/${x}" }
+        resolv::nameserver { $ns: }
       }
       if $search {
-        file_line { 'set_search':
-          path  => '/etc/resolv.conf',
-          line  => "search ${search_string}",
-          match => '^search',
-        }
+        $dn = $search.map |$x| { "default/${x}" }
+        resolv::search { $dn: }
       }
       if $options {
-        file_line { 'set_options':
-          path  => '/etc/resolv.conf',
-          line  => "options ${options_string}",
-          match => '^options',
-        }
+        $opt = $options.map |$x| { "default/${x}" }
+        resolv::option { $opt: }
       }
     }
   }
