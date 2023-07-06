@@ -23,11 +23,7 @@ define resolv::domain (
         lens    => 'resolv.lns',
         incl    => '/etc/resolv.conf',
         context => '/files/etc/resolv.conf',
-        changes => [
-          'touch domain',
-          "set domain ${_domain}",
-        ],
-        onlyif  => "match /files/etc/resolv.conf/domain[.='${_domain}'] size==0",
+        changes => "set domain ${_domain}",
       }
     }
     'absent': {

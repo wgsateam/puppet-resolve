@@ -1,10 +1,4 @@
 ---
-nameservers:
-  - 'Global/172.28.0.253'
-  - 'Global/172.28.0.254'
-search:
-  - 'Global/be.core.pw:1'
-options:
-  - 'Global/rotate'
-  - 'Global/timeout:2'
-
+nameservers: ~
+search: ~
+options: ~

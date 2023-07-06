@@ -27,15 +27,23 @@ class resolv (
   Variant[Array, Undef] $options = undef
 ) {
   if $nameservers {
-    $nameservers_string = join($nameservers, ' ')
+    $nameservers_array = $nameservers.map |$x| { $x.split('/')[-1].split(':')[0] }
+    $nameservers_string = $nameservers_array.join(' ')
   }
 
   if $search {
-    $search_string = join($search, ' ')
+    $search_string = ($search.map |$x| { $x.split('/')[-1].split(':')[0] }).join(' ')
   }
 
   if $options {
-    $options_string = join($options, ' ')
+    if 'pdnsd' in $facts['classes'] {
+      $_options = $options
+    } else {
+      $_options = $options + ['default/rotate']
+    }
+    if $_options {
+      $options_string = ($_options.map |$x| { $x.split('/')[-1] }).join(' ')
+    }
   }
 
   case $::osfamily {
@@ -70,7 +78,7 @@ class resolv (
         content => template('resolv/resolv.conf.erb'),
       }
       ~>
-      exec { "resovconfupdate":
+      exec { 'resovconfupdate':
         command     => '/sbin/resolvconf -u',
         refreshonly => true,
       }
@@ -84,18 +92,10 @@ class resolv (
         $dn = $search.map |$x| { "default/${x}" }
         resolv::search { $dn: }
       }
-      if $options {
-        $opt = $options.map |$x| { "default/${x}" }
+      if $_options {
+        $opt = $_options.map |$x| { "default/${x}" }
         resolv::option { $opt: }
       }
     }
-  }
-}
-
-define resolv::set_nameserver {
-  file_line { "set_ns_${title}":
-    path  => '/etc/resolv.conf',
-    line  => "nameserver ${title}",
-    match => "nameserver ${title}",
   }
 }

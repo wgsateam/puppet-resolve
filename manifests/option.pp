@@ -1,7 +1,7 @@
 # Public: Manage options entries in /etc/resolv.conf
 #
-# namevar - The name of the option to be managed as a String.
-# value   - The value of the option as a String.  This is only required when
+# namevar:value - The name of the option to be managed as a String.
+#           The value of the option as a String.  This is only required when
 #           managing options that take a value ('ndots', 'timeout', and
 #           'attempts').
 # ensure  - The desired state of the resource as a String.  Valid values are
@@ -10,9 +10,7 @@
 # Examples
 #
 #   # Set the resolver timeout to 1 second
-#   resolvconf::option { 'timeout':
-#     value => '1',
-#   }
+#   resolvconf::option { 'timeout:1': }
 #
 #   # Attempt AAAA lookups before A
 #   resolvconf::option { 'inet6': }
@@ -35,22 +33,14 @@ define resolv::option (
           lens    => 'resolv.lns',
           incl    => '/etc/resolv.conf',
           context => '/files/etc/resolv.conf',
-          changes => [
-            'touch options',
-            "touch options/${opt}",
-          ],
-          onlyif  => "match options/${opt} size==0",
+          changes => "touch options/${opt}",
         }
       } else {
         augeas { "${title}: Adding option '${opt}' with value ${_value} to /etc/resolv.conf":
           lens    => 'resolv.lns',
           incl    => '/etc/resolv.conf',
           context => '/files/etc/resolv.conf',
-          changes => [
-            'touch options',
-            "set options/${opt} ${_value}",
-          ],
-          onlyif  => "match options/${opt} size==0",
+          changes => "set options/${opt} ${_value}",
         }
       }
     }
@@ -59,8 +49,14 @@ define resolv::option (
         lens    => 'resolv.lns',
         incl    => '/etc/resolv.conf',
         context => '/files/etc/resolv.conf',
-        changes => "rm options[.='${opt}']",
-        onlyif  => 'match options size==0',
+        changes => "rm options/${opt}",
+      } ~>
+      augeas { "${title}: Removing options section from /etc/resolv.conf":
+        lens    => 'resolv.lns',
+        incl    => '/etc/resolv.conf',
+        context => '/files/etc/resolv.conf',
+        changes => 'rm options',
+        onlyif  => 'match options/* size==0',
       }
     }
     default: {

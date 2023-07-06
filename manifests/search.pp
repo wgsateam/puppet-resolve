@@ -10,8 +10,8 @@
 # Examples
 #
 #   resolvconf::search {
-#     'foo.test.com:0':
-#     'test.com':
+#     'foo.test.com':
+#     'test.com:1':
 #   }
 
 define resolv::search (
@@ -27,10 +27,7 @@ define resolv::search (
           lens    => 'resolv.lns',
           incl    => '/etc/resolv.conf',
           context => '/files/etc/resolv.conf',
-          changes => [
-            'touch search',
-            "set search/domain[last()+1] ${dn}",
-          ],
+          changes => "set search/domain[last()+1] ${dn}",
           onlyif  => "match search/domain[.='${dn}'] size==0",
         }
       } else {
@@ -39,7 +36,6 @@ define resolv::search (
           incl    => '/etc/resolv.conf',
           context => '/files/etc/resolv.conf',
           changes => [
-            'touch search',
             "rm search/domain[.=${dn}]",
             "ins domain before search/domain[${priority}]",
             "set search/domain[${priority}] ${dn}",
@@ -54,7 +50,13 @@ define resolv::search (
         incl    => '/etc/resolv.conf',
         context => '/files/etc/resolv.conf',
         changes => "rm search/domain[.='${dn}']",
-        onlyif  => 'match search size==0',
+      } ~>
+      augeas { "${title}: Removing search/domains section from /etc/resolv.conf":
+        lens    => 'resolv.lns',
+        incl    => '/etc/resolv.conf',
+        context => '/files/etc/resolv.conf',
+        changes => 'rm search',
+        onlyif  => 'match search/* size==0',
       }
     }
     default: {
