@@ -8,6 +8,8 @@
 # Array of desired nameservers
 # [*search*]
 # Array of desired search domains
+# [*domain*]
+# domain of host
 # [*options*]
 # Array of desired resolver options
 #
@@ -24,11 +26,16 @@
 class resolv (
   Variant[Array, Undef] $nameservers = undef,
   Variant[Array, Undef] $search = undef,
-  Variant[Array, Undef] $options = undef
+  Variant[Array, Undef] $options = undef,
+  Variant[String, Undef] $domain = undef,
 ) {
   if $nameservers {
     $nameservers_array = $nameservers.map |$x| { $x.split('/')[-1].split(':')[0] }
     $nameservers_string = $nameservers_array.join(' ')
+  }
+
+  if $domain {
+    $domain_string = $domain.split('/')[-1]
   }
 
   if $search {
@@ -36,14 +43,7 @@ class resolv (
   }
 
   if $options {
-    if 'pdnsd' in $facts['classes'] {
-      $_options = $options
-    } else {
-      $_options = $options + ['default/rotate']
-    }
-    if $_options {
-      $options_string = ($_options.map |$x| { $x.split('/')[-1] }).join(' ')
-    }
+    $options_string = ($options.map |$x| { $x.split('/')[-1] }).join(' ')
   }
 
   case $::osfamily {
@@ -92,8 +92,11 @@ class resolv (
         $dn = $search.map |$x| { "default/${x}" }
         resolv::search { $dn: }
       }
-      if $_options {
-        $opt = $_options.map |$x| { "default/${x}" }
+      if $domain {
+        resolv::domain { "default/${domain}": }
+      }
+      if $options {
+        $opt = $options.map |$x| { "default/${x}" }
         resolv::option { $opt: }
       }
     }
