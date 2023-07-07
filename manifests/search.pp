@@ -17,73 +17,43 @@
 define resolv::search (
   $ensure = 'present',
 ) {
-  $_domain = $title.split('/')[-1]
-  $_dn = $_domain.split(':')[0]
-  $priority = $_domain.split(':')[1]
+  $_domain_priority = $title.split('/')[-1]
+  $_dn = $_domain_priority.split(':')[0]
+  $_pr = $_domain_priority.split(':')[1]
   if $_dn[0] == '-' {
     $_ensure = 'absent'
-    $dn = $_dn[1,-1]
+    $domain = $_dn[1,-1]
   } else {
     $_ensure = $ensure
-    $dn = $_dn
+    $domain = $_dn
   }
-  case $_ensure {
-    'present': {
-      if $priority.empty() {
-        augeas { "${title}: Adding search domain '${dn}' to /etc/resolv.conf":
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => "set search/domain[last()+1] ${dn}",
-          onlyif  => "match search/domain[.='${dn}'] size==0",
-        }
-      } else {
-        augeas { "${title}: Adding search domain '${dn}' with priority ${priority} to /etc/resolv.conf":
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => [
-            "rm search/domain[.=${dn}]",
-            "ins domain before search/domain[${priority}]",
-            "set search/domain[${priority}] ${dn}",
-          ],
-          onlyif  => "match search/domain[${priority}][.='${dn}'] size==0",
-        }
-      }
-    }
-    'absent': {
-      if $priority.empty() {
-        augeas { "${title}: Removing search domain '${dn}' from /etc/resolv.conf":
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => "rm search/domain[.='${dn}']",
-        }
-      } else {
-        augeas { "${title}: Removing search domain '${dn}' from /etc/resolv.conf":
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => [
-            "rm search/domain[${priority}]",
-            "rm search/domain[${priority}]",
-            "rm search/domain[${priority}]",
-            "rm search/domain[${priority}]",
-            "rm search/domain[${priority}]",
-            "rm search/domain[${priority}]",
-          ],
-        }
-      }
-      augeas { "${title}: Removing search/domains section from /etc/resolv.conf":
-        lens    => 'resolv.lns',
-        incl    => '/etc/resolv.conf',
-        context => '/files/etc/resolv.conf',
-        changes => 'rm search',
-        onlyif  => 'match search/* size==0',
-      }
-    }
-    default: {
-      fail("Invalid ensure value passed to Resolv::Search[${dn}]")
+  if ! $_pr.empty() {
+    $priority = $_pr
+    $priority_m = "[${$_pr}]"
+  } else {
+    $priority = '1'
+    $priority_m = ''
+  }
+  if ! $domain.empty() and $_ensure == 'present' {
+    $_ch = [
+      'set search/domain[last()+1] tmp',
+      "rm search/domain[.='${domain}']",
+      "ins domain before search/domain[${priority}]",
+      "set search/domain[${priority}] ${domain}",
+      "rm search/domain[.='tmp']",
+    ]
+    $_if = "match search/domain${priority_m}[.='${domain}'] size==0"
+  } elsif ! $domain.empty() and $_ensure == 'absent' {
+    $_ch = "rm search/domain[.='${domain}']"
+    $_if = "match search/domain${priority_m}[.='${domain}'] size>0"
+  }
+  if $_ch {
+    augeas { "${title}: Modify search/domain ${domain} with priority ${priority} to /etc/resolv.conf":
+      lens    => 'resolv.lns',
+      incl    => '/etc/resolv.conf',
+      context => '/files/etc/resolv.conf',
+      changes => $_ch,
+      onlyif  => $_if,
     }
   }
 }

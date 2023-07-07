@@ -23,72 +23,45 @@
 #   }
 
 define resolv::nameserver (
-  $ensure     = 'present',
+  $ensure = 'present',
 ) {
-  $_nameserver = $title.split('/')[-1]
-  $_ns = $_nameserver.split(':')[0]
-  $priority = $_nameserver.split(':')[1]
+  $_nameserver_priority = $title.split('/')[-1]
+  $_ns = $_nameserver_priority.split(':')[0]
+  $_pr = $_nameserver_priority.split(':')[1]
   if $_ns[0] == '-' {
     $_ensure = 'absent'
-    $ns = $_ns[1,-1]
+    $nameserver = $_ns[1,-1]
   } else {
     $_ensure = $ensure
-    $ns = $_ns
+    $nameserver = $_ns
   }
-  case $_ensure {
-    'present': {
-      if $priority.empty() {
-        augeas { "${title}: Adding nameserver ${ns} to /etc/resolv.conf":
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => [
-            "rm nameserver[.='${ns}']",
-            'ins nameserver before nameserver[1]',
-            "set nameserver[1] ${ns}",
-          ],
-          onlyif  => "match nameserver[.='${ns}'] size==0",
-        }
-      } else {
-        augeas { "${title}: Adding nameserver ${ns} with priority ${priority} to /etc/resolv.conf":
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => [
-            "rm nameserver[.='${ns}']",
-            "ins nameserver before nameserver[${priority}]",
-            "set nameserver[${priority}] ${ns}",
-          ],
-          onlyif  => "match nameserver[${priority}][.='${ns}'] size==0",
-        }
-      }
-    }
-    'absent': {
-      if $priority.empty() {
-        augeas { "${title}: Removing nameserver ${ns} from /etc/resolv.conf":
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => "rm nameserver[.='${ns}']",
-        }
-      } else {
-        augeas { "${title}: Removing nameserver ${ns} from /etc/resolv.conf":
-          lens    => 'resolv.lns',
-          incl    => '/etc/resolv.conf',
-          context => '/files/etc/resolv.conf',
-          changes => [
-            "rm nameserver[${priority}]",
-            "rm nameserver[${priority}]",
-            "rm nameserver[${priority}]",
-            "rm nameserver[${priority}]",
-            "rm nameserver[${priority}]",
-            "rm nameserver[${priority}]",
-          ],
-        }
-      }
-    }
-    default: {
-      fail("Invalid ensure value passed to Resolv::Nameserver[${ns}]")
+  if $_pr {
+    $priority = $_pr
+    $priority_m = "[${$_pr}]"
+  } else {
+    $priority = '1'
+    $priority_m = ''
+  }
+  if ! $nameserver.empty() and $_ensure == 'present' {
+    $_ch = [
+      'set nameserver[last()+1] 0.0.0.0',
+      "rm nameserver[.='${nameserver}']",
+      "ins nameserver before nameserver[${priority}]",
+      "set nameserver[${priority}] ${nameserver}",
+      "rm nameserver[.='0.0.0.0']",
+    ]
+    $_if = "match nameserver${priority_m}[.='${nameserver}'] size==0"
+  } elsif ! $nameserver.empty() and $_ensure == 'absent' {
+    $_ch = "rm nameserver[.='${nameserver}']"
+    $_if = "match nameserver${priority_m}[.='${nameserver}'] size>0"
+  }
+  if $_ch {
+    augeas { "${title}: Modify nameserver ${nameserver} with priority ${priority} to /etc/resolv.conf":
+      lens    => 'resolv.lns',
+      incl    => '/etc/resolv.conf',
+      context => '/files/etc/resolv.conf',
+      changes => $_ch,
+      onlyif  => $_if,
     }
   }
 }

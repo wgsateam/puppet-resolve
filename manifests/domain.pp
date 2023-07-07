@@ -17,30 +17,15 @@ define resolv::domain (
   $ensure = 'present',
 ) {
   $domain = $title.split('/')[-1]
-  if $domain[0] == '-' {
-    $_ensure = 'absent'
+  if $domain[0] == '-' or $ensure == 'absent' {
+    $_ch = 'rm domain'
   } else {
-    $_ensure = $ensure
+    $_ch = "set domain ${domain}"
   }
-  case $_ensure {
-    'present': {
-      augeas { "${title}: Setting domain in /etc/resolv.conf to ${domain}":
-        lens    => 'resolv.lns',
-        incl    => '/etc/resolv.conf',
-        context => '/files/etc/resolv.conf',
-        changes => "set domain ${domain}",
-      }
-    }
-    'absent': {
-      augeas { "${title}: Removing domain from /etc/resolv.conf":
-        lens    => 'resolv.lns',
-        incl    => '/etc/resolv.conf',
-        context => '/files/etc/resolv.conf',
-        changes => 'rm domain',
-      }
-    }
-    default: {
-      fail("Invalid ensure value passed to Resolv::Domain[${domain}]")
-    }
+  augeas { "${title}: Modify domain in /etc/resolv.conf to ${domain}":
+    lens    => 'resolv.lns',
+    incl    => '/etc/resolv.conf',
+    context => '/files/etc/resolv.conf',
+    changes => $_ch,
   }
 }

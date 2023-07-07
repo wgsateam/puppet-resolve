@@ -39,11 +39,13 @@ class resolv (
   }
 
   if $search {
-    $search_string = ($search.map |$x| { $x.split('/')[-1].split(':')[0] }).join(' ')
+    $search_array = $search.map |$x| { $x.split('/')[-1].split(':')[0] }
+    $search_string = $search_array.join(' ')
   }
 
   if $options {
-    $options_string = ($options.map |$x| { $x.split('/')[-1] }).join(' ')
+    $options_array = $options.map |$x| { $x.split('/')[-1] }
+    $options_string = $options_array.join(' ')
   }
 
   case $::osfamily {
@@ -88,20 +90,9 @@ class resolv (
         $ns = $nameservers.map |$x| { "default/${x}" }
         resolv::nameserver { $ns: }
       }
-      if $search {
-        $dn = ($search + ['-']).map |$i,$x| {
-          $n = $x.split(':')[1]
-          if $n { $_n = $n } else { $_n = $i+1 }
-          "default/${x.split(':')[0]}:${_n}"
-        }
-        resolv::search { $dn: }
-      }
-      if $domain {
-        resolv::domain { "default/${domain}": }
-      }
-      if $options {
-        $opt = $options.map |$x| { "default/${x}" }
-        resolv::option { $opt: }
+      augeas { 'resolvconf_ext':
+        context => '/files/etc/resolv.conf',
+        changes => template('resolv/resolv.conf.ext.erb'),
       }
     }
   }

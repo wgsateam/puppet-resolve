@@ -1,0 +1,20 @@
+<% if @search_array -%>
+rm search
+<% @search_array.each do |sdom| -%>
+set search/domain[last()+1] <%= sdom %>
+<% end
+end -%>
+<% if @options_array -%>
+<% @options_array.each do |opt| -%>
+<% opt_ = opt.split(':')[0] -%>
+<% val_ = opt.split(':')[1] -%>
+<% if val_ -%>
+set options/<%= opt_ %> <%= val_ %>
+<% else -%>
+touch options/<%= opt_ %>
+<% end
+end
+end
+if @domain_string -%>
+domain <%= @domain_string %>
+<% end -%>
