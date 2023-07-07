@@ -1,9 +1,11 @@
 <% if @search_array -%>
+rm search/*
 <% @search_array.each_with_index do |sdom,idx| -%>
 set search/domain[<%= idx %>+1] <%= sdom %>
 <% end -%>
 <% end -%>
 <% if @options_array -%>
+rm options/*
 <% @options_array.each do |opt| -%>
 <% opt_ = opt.split(':')[0] -%>
 <% val_ = opt.split(':')[1] -%>
