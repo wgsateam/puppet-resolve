@@ -18,10 +18,17 @@ define resolv::search (
   $ensure = 'present',
 ) {
   $_domain = $title.split('/')[-1]
-  $dn = $_domain.split(':')[0]
-  case $ensure {
+  $_dn = $_domain.split(':')[0]
+  $priority = $_domain.split(':')[1]
+  if $_dn[0] == '-' {
+    $_ensure = 'absent'
+    $dn = $_dn[1,-1]
+  } else {
+    $_ensure = $ensure
+    $dn = $_dn
+  }
+  case $_ensure {
     'present': {
-      $priority = $_domain.split(':')[1]
       if $priority.empty() {
         augeas { "${title}: Adding search domain '${dn}' to /etc/resolv.conf":
           lens    => 'resolv.lns',
@@ -45,12 +52,28 @@ define resolv::search (
       }
     }
     'absent': {
-      augeas { "${title}: Removing search domain '${dn}' from /etc/resolv.conf":
-        lens    => 'resolv.lns',
-        incl    => '/etc/resolv.conf',
-        context => '/files/etc/resolv.conf',
-        changes => "rm search/domain[.='${dn}']",
-      } ~>
+      if $priority.empty() {
+        augeas { "${title}: Removing search domain '${dn}' from /etc/resolv.conf":
+          lens    => 'resolv.lns',
+          incl    => '/etc/resolv.conf',
+          context => '/files/etc/resolv.conf',
+          changes => "rm search/domain[.='${dn}']",
+        }
+      } else {
+        augeas { "${title}: Removing search domain '${dn}' from /etc/resolv.conf":
+          lens    => 'resolv.lns',
+          incl    => '/etc/resolv.conf',
+          context => '/files/etc/resolv.conf',
+          changes => [
+            "rm search/domain[${priority}]",
+            "rm search/domain[${priority}]",
+            "rm search/domain[${priority}]",
+            "rm search/domain[${priority}]",
+            "rm search/domain[${priority}]",
+            "rm search/domain[${priority}]",
+          ],
+        }
+      }
       augeas { "${title}: Removing search/domains section from /etc/resolv.conf":
         lens    => 'resolv.lns',
         incl    => '/etc/resolv.conf',

@@ -26,16 +26,27 @@ define resolv::nameserver (
   $ensure     = 'present',
 ) {
   $_nameserver = $title.split('/')[-1]
-  $ns = $_nameserver.split(':')[0]
-  case $ensure {
+  $_ns = $_nameserver.split(':')[0]
+  $priority = $_nameserver.split(':')[1]
+  if $_ns[0] == '-' {
+    $_ensure = 'absent'
+    $ns = $_ns[1,-1]
+  } else {
+    $_ensure = $ensure
+    $ns = $_ns
+  }
+  case $_ensure {
     'present': {
-      $priority = $_nameserver.split(':')[1]
       if $priority.empty() {
         augeas { "${title}: Adding nameserver ${ns} to /etc/resolv.conf":
           lens    => 'resolv.lns',
           incl    => '/etc/resolv.conf',
           context => '/files/etc/resolv.conf',
-          changes => "set nameserver[last()+1] ${ns}",
+          changes => [
+            "rm nameserver[.='${ns}']",
+            'ins nameserver before nameserver[1]',
+            "set nameserver[1] ${ns}",
+          ],
           onlyif  => "match nameserver[.='${ns}'] size==0",
         }
       } else {
@@ -53,11 +64,27 @@ define resolv::nameserver (
       }
     }
     'absent': {
-      augeas { "${title}: Removing nameserver ${ns} from /etc/resolv.conf":
-        lens    => 'resolv.lns',
-        incl    => '/etc/resolv.conf',
-        context => '/files/etc/resolv.conf',
-        changes => "rm nameserver[.='${ns}']",
+      if $priority.empty() {
+        augeas { "${title}: Removing nameserver ${ns} from /etc/resolv.conf":
+          lens    => 'resolv.lns',
+          incl    => '/etc/resolv.conf',
+          context => '/files/etc/resolv.conf',
+          changes => "rm nameserver[.='${ns}']",
+        }
+      } else {
+        augeas { "${title}: Removing nameserver ${ns} from /etc/resolv.conf":
+          lens    => 'resolv.lns',
+          incl    => '/etc/resolv.conf',
+          context => '/files/etc/resolv.conf',
+          changes => [
+            "rm nameserver[${priority}]",
+            "rm nameserver[${priority}]",
+            "rm nameserver[${priority}]",
+            "rm nameserver[${priority}]",
+            "rm nameserver[${priority}]",
+            "rm nameserver[${priority}]",
+          ],
+        }
       }
     }
     default: {

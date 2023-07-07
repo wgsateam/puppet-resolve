@@ -89,7 +89,11 @@ class resolv (
         resolv::nameserver { $ns: }
       }
       if $search {
-        $dn = $search.map |$x| { "default/${x}" }
+        $dn = ($search + ['-']).map |$i,$x| {
+          $n = $x.split(':')[1]
+          if $n { $_n = $n } else { $_n = $i+1 }
+          "default/${x.split(':')[0]}:${_n}"
+        }
         resolv::search { $dn: }
       }
       if $domain {

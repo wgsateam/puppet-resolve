@@ -16,14 +16,19 @@
 define resolv::domain (
   $ensure = 'present',
 ) {
-  $_domain = $title.split('/')[-1]
-  case $ensure {
+  $domain = $title.split('/')[-1]
+  if $domain[0] == '-' {
+    $_ensure = 'absent'
+  } else {
+    $_ensure = $ensure
+  }
+  case $_ensure {
     'present': {
-      augeas { "${title}: Setting domain in /etc/resolv.conf to ${_domain}":
+      augeas { "${title}: Setting domain in /etc/resolv.conf to ${domain}":
         lens    => 'resolv.lns',
         incl    => '/etc/resolv.conf',
         context => '/files/etc/resolv.conf',
-        changes => "set domain ${_domain}",
+        changes => "set domain ${domain}",
       }
     }
     'absent': {
@@ -35,7 +40,7 @@ define resolv::domain (
       }
     }
     default: {
-      fail("Invalid ensure value passed to Resolv::Domain[${_domain}]")
+      fail("Invalid ensure value passed to Resolv::Domain[${domain}]")
     }
   }
 }

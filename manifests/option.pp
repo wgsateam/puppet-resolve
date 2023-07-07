@@ -24,8 +24,15 @@ define resolv::option (
   $ensure = 'present',
 ) {
   $_option = $title.split('/')[-1]
-  $opt = $_option.split(':')[0]
-  case $ensure {
+  $_opt = $_option.split(':')[0]
+  if $_opt[0] == '-' {
+    $_ensure = 'absent'
+    $opt = $_opt[1,-1]
+  } else {
+    $_ensure = $ensure
+    $opt = $_opt
+  }
+  case $_ensure {
     'present': {
       $_value = $_option.split(':')[1]
       if $_value.empty() {
@@ -50,7 +57,7 @@ define resolv::option (
         incl    => '/etc/resolv.conf',
         context => '/files/etc/resolv.conf',
         changes => "rm options/${opt}",
-      } ~>
+      } ->
       augeas { "${title}: Removing options section from /etc/resolv.conf":
         lens    => 'resolv.lns',
         incl    => '/etc/resolv.conf',
