@@ -86,13 +86,13 @@ class resolv (
       }
     }
     default: {
-      if $nameservers {
-        $ns = $nameservers.map |$x| { "default/${x}" }
-        resolv::nameserver { $ns: }
-      }
       augeas { 'resolvconf_ext':
         context => '/files/etc/resolv.conf',
         changes => template('resolv/resolv.conf.ext.erb'),
+      }
+      if $nameservers {
+        $ns = $nameservers.map |$x| { "default/${x}" }
+        resolv::nameserver { $ns: }
       }
     }
   }
