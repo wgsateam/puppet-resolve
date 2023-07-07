@@ -1,4 +1,5 @@
 <% if @search_array -%>
+rm search
 <% @search_array.each do |sdom| -%>
 set search/domain[last()+1] <%= sdom %>
 <% end
