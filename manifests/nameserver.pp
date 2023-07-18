@@ -56,6 +56,7 @@ define resolv::nameserver (
     $_if = "match nameserver${priority_m}[.='${nameserver}'] size>0"
   }
   if $_ch {
+    require resolv::fixes
     augeas { "${title}: Modify nameserver ${nameserver} with priority ${priority} to /etc/resolv.conf":
       lens    => 'resolv.lns',
       incl    => '/etc/resolv.conf',

@@ -48,6 +48,7 @@ define resolv::search (
     $_if = "match search/domain${priority_m}[.='${domain}'] size>0"
   }
   if $_ch {
+    require resolv::fixes
     augeas { "${title}: Modify search/domain ${domain} with priority ${priority} to /etc/resolv.conf":
       lens    => 'resolv.lns',
       incl    => '/etc/resolv.conf',

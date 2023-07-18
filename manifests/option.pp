@@ -44,6 +44,7 @@ define resolv::option (
     $_if = "match options/${option} size>0"
   }
   if $_ch {
+    require resolv::fixes
     augeas { "${title}: Modify option '${option}' with value ${value} to /etc/resolv.conf":
       lens    => 'resolv.lns',
       incl    => '/etc/resolv.conf',

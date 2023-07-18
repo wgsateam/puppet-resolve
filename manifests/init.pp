@@ -86,6 +86,7 @@ class resolv (
       }
     }
     default: {
+      require resolv::fixes
       augeas { 'resolvconf_ext':
         context => '/files/etc/resolv.conf',
         changes => template('resolv/resolv.conf.ext.erb'),

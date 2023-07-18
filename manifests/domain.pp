@@ -22,6 +22,7 @@ define resolv::domain (
   } else {
     $_ch = "set domain ${domain}"
   }
+  require resolv::fixes
   augeas { "${title}: Modify domain in /etc/resolv.conf to ${domain}":
     lens    => 'resolv.lns',
     incl    => '/etc/resolv.conf',
