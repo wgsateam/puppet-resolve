@@ -28,7 +28,7 @@ define resolv::nameserver (
   $_nameserver_priority = $title.split('/')[-1]
   $_ns = $_nameserver_priority.split(':')[0]
   $_pr = $_nameserver_priority.split(':')[1]
-  if $_ns[0] == '-' {
+  if $_ns and $_ns[0] == '-' {
     $_ensure = 'absent'
     $nameserver = $_ns[1,-1]
   } else {
@@ -48,12 +48,28 @@ define resolv::nameserver (
       "rm nameserver[.='${nameserver}']",
       "ins nameserver before nameserver[${priority}]",
       "set nameserver[${priority}] ${nameserver}",
+      'rm nameserver[.=following-sibling::*]',
+      'rm nameserver[position()>3]',
       "rm nameserver[.='0.0.0.0']",
     ]
     $_if = "match nameserver${priority_m}[.='${nameserver}'] size==0"
   } elsif ! $nameserver.empty() and $_ensure == 'absent' {
-    $_ch = "rm nameserver[.='${nameserver}']"
+    $_ch = [
+      'set nameserver[last()+1] 0.0.0.0',
+      "rm nameserver[.='${nameserver}']",
+      'rm nameserver[.=following-sibling::*]',
+      'rm nameserver[position()>3]',
+      "rm nameserver[.='0.0.0.0']",
+    ]
     $_if = "match nameserver${priority_m}[.='${nameserver}'] size>0"
+  } else {
+    $_ch = [
+      'set nameserver[last()+1] 0.0.0.0',
+      'rm nameserver[.=following-sibling::*]',
+      'rm nameserver[position()>3]',
+      "rm nameserver[.='0.0.0.0']",
+    ]
+    $_if = 'match nameserver size>2'
   }
   if $_ch {
     require resolv::fixes
