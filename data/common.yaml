@@ -1,5 +1,5 @@
 ---
-nameservers: ~
-search: ~
-domain: ~
-options: ~
+resolv::nameservers: ~
+resolv::search: ~
+resolv::domain: ~
+resolv::options: ~
