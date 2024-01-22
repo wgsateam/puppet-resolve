@@ -4,7 +4,7 @@ class resolv::fixes {
   } else {
     $_file = '/usr/share/augeas/lenses/dist/resolv.aug'
   }
-  if versioncmp($facts['aio_agent_version'], '7.28.0') < 0 {
+  if versioncmp($facts['aio_agent_version'], '7.27.0') > 0 {
     $_opts = ['ip6-dotint','no-ip6-dotint']
   } else {
     $_opts = ['ip6-dotint','no-ip6-dotint','trust-ad']
