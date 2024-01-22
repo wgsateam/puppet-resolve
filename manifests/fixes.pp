@@ -4,8 +4,13 @@ class resolv::fixes {
   } else {
     $_file = '/usr/share/augeas/lenses/dist/resolv.aug'
   }
-  ['ip6-dotint','no-ip6-dotint','trust-ad'].each |$o| {
-    file_line { "glibc_2.31_otions_${o}_for_resolf.conf":
+  if versioncmp($facts['aio_agent_version'], '7.28.0') < 0 {
+    $_opts = ['ip6-dotint','no-ip6-dotint']
+  } else {
+    $_opts = ['ip6-dotint','no-ip6-dotint','trust-ad']
+  }
+  $_opts.each |$o| {
+    file_line { "glibc_2.31_options_${o}_for_resolv.conf":
       ensure => present,
       path   => $_file,
       after  => '.*Build.flag.*rotate.*',
