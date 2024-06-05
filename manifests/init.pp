@@ -48,7 +48,7 @@ class resolv (
     $options_string = $options_array.join(' ')
   }
 
-  case $::osfamily {
+  case $facts['os']['family'] {
     'Solaris': {
       if $nameservers {
         exec { "dnsclient.setprop.${nameservers_string}":
@@ -74,13 +74,11 @@ class resolv (
       package { 'resolvconf':
         ensure => installed,
       }
-      ->
-      file { '/etc/resolvconf/resolv.conf.d/tail':
+      -> file { '/etc/resolvconf/resolv.conf.d/tail':
         ensure  => file,
         content => template('resolv/resolv.conf.erb'),
       }
-      ~>
-      exec { 'resovconfupdate':
+      ~> exec { 'resovconfupdate':
         command     => '/sbin/resolvconf -u',
         refreshonly => true,
       }
@@ -97,6 +95,12 @@ class resolv (
         $ns = []
       }
       resolv::nameserver { ['default_cleanup/:'] + $ns: }
+      file { '/etc/resolv.conf':
+        ensure => file,
+        owner  => 'root',
+        group  => 'root',
+        mode   => '0644',
+      }
     }
   }
 }
