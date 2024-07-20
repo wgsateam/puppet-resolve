@@ -18,4 +18,9 @@ class resolv::fixes {
       match  => ".*\|\"${o}\".*",
     }
   }
+  # Ensure /etc/resolv.conf is not a symlink
+  exec { 'remove_symlink_resolv.conf':
+    command => 'cp --remove-destination $(readlink /etc/resolv.conf) /etc/resolv.conf',
+    onlyif  => 'test -L /etc/resolv.conf',
+  }
 }

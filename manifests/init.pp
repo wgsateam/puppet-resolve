@@ -95,12 +95,6 @@ class resolv (
         $ns = []
       }
       resolv::nameserver { ['default_cleanup/:'] + $ns: }
-      file { '/etc/resolv.conf':
-        ensure => file,
-        owner  => 'root',
-        group  => 'root',
-        mode   => '0644',
-      }
     }
   }
 }
