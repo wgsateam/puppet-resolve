@@ -15,7 +15,7 @@ class resolv::fixes {
       path   => $_file,
       after  => '.*Build.flag.*rotate.*',
       line   => "                                     |\"${o}\"",
-      match  => ".*\|\"${o}\".*",
+      match  => ".*|\"${o}\".*",
     }
   }
   # Ensure /etc/resolv.conf is not a symlink
