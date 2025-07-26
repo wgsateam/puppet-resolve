@@ -71,7 +71,7 @@ class resolv (
       }
     }
     'Debian': {
-      package { 'resolvconf':
+      package { 'systemd-resolved':
         ensure => installed,
       }
       -> file { '/etc/resolvconf/resolv.conf.d/tail':
