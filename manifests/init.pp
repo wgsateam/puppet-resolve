@@ -70,19 +70,6 @@ class resolv (
         }
       }
     }
-    'Debian': {
-      package { 'systemd-resolved':
-        ensure => installed,
-      }
-      -> file { '/etc/resolvconf/resolv.conf.d/tail':
-        ensure  => file,
-        content => template('resolv/resolv.conf.erb'),
-      }
-      ~> exec { 'resovconfupdate':
-        command     => '/sbin/resolvconf -u',
-        refreshonly => true,
-      }
-    }
     default: {
       require resolv::fixes
       augeas { 'resolvconf_ext':
