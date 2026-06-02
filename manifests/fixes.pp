@@ -1,10 +1,8 @@
 class resolv::fixes {
-  if versioncmp($facts['aio_agent_version'], '7.32.0') < 0 {
-    if $facts['puppet_vardir'] =~ '/opt/puppetlabs' {
-      $_file = '/opt/puppetlabs/puppet/share/augeas/lenses/dist/resolv.aug'
-    } else {
-      $_file = '/usr/share/augeas/lenses/dist/resolv.aug'
-    }
+  if $facts['puppet_vardir'] =~ /^\/opt\/puppetlabs\// and
+      $facts['aio_agent_version'] =~ Pattern[/^\d+\.\d+\.\d+/] and
+      versioncmp($facts['aio_agent_version'], '7.32.0') < 0 {
+    $_file = '/opt/puppetlabs/puppet/share/augeas/lenses/dist/resolv.aug'
     if versioncmp($facts['aio_agent_version'], '7.27.0') > 0 {
       $_opts = ['ip6-dotint','no-ip6-dotint']
     } else {
@@ -22,7 +20,10 @@ class resolv::fixes {
   }
   # Ensure /etc/resolv.conf is not a symlink
   exec { 'remove_symlink_resolv.conf':
-    command => 'cp --remove-destination $(readlink /etc/resolv.conf) /etc/resolv.conf',
-    onlyif  => 'test -L /etc/resolv.conf',
+    command => '/bin/sh -c \'/bin/cp --remove-destination "$(/usr/bin/readlink -f /etc/resolv.conf)" /etc/resolv.conf\'',
+    onlyif  => [
+      '/usr/bin/test -L /etc/resolv.conf',
+      '/bin/sh -c \'/usr/bin/test -r "$(/usr/bin/readlink -f /etc/resolv.conf)"\'',
+    ],
   }
 }

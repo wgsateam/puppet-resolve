@@ -75,13 +75,16 @@ class resolv (
       augeas { 'resolvconf_ext':
         context => '/files/etc/resolv.conf',
         changes => template('resolv/resolv.conf.ext.erb'),
+        require => Class['resolv::fixes'],
       }
       if $nameservers {
         $ns = reverse(($nameservers.map |$x| { "default/${x}" })[0,2])
       } else {
         $ns = []
       }
-      resolv::nameserver { ['default_cleanup/:'] + $ns: }
+      resolv::nameserver { ['default_cleanup/:'] + $ns:
+        require => Augeas['resolvconf_ext'],
+      }
     }
   }
 }
